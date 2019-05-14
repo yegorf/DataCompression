@@ -1,10 +1,8 @@
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.nio.file.Files;
-
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
+        Coder coder = new Coder();
+        StringBuffer string = coder.read("image.bmp");
 
+        System.out.println(string);
     }
 }
