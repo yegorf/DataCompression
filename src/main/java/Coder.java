@@ -1,9 +1,14 @@
+import com.sun.javafx.iio.ImageStorage;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 public class Coder {
 
@@ -44,24 +49,18 @@ public class Coder {
         deleteLines();
         System.out.println();
         decode();
-    }
 
-    public void createImage() throws IOException {
-        String url = "new-image.bmp";
-        BufferedImage image = ImageIO.read(new File(url));
-        WritableRaster raster = image.getRaster();
-
-        for(int y = 0; y < raster.getHeight(); y++){
-            int i = 0;
-            for(int x = 0; x < raster.getWidth(); x++){
-                if(bits[x][y] == '0'){
-                    image.setRGB(x, y, -16777216);
-                }
-                else{
-                    image.setRGB(x, y, -12277216);
+        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_INT_RGB);
+        for(int y = 0; y < 700; y++) {
+            for (int x = 0; x < 700; x++) {
+                if(bits[y][x] == '0') {
+                    fin.setRGB(x, y, -16777216);
+                } else  {
+                    fin.setRGB(x, y, 10000000);
                 }
             }
         }
+        ImageIO.write(fin, "bmp", new File("result.bmp"));
     }
 
     public void deleteLines() {
