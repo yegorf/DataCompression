@@ -41,8 +41,8 @@ public class Coder {
         }
     }
 
+    //Побитово читаем пикчу
     public void read(String url) throws IOException {
-        //StringBuffer sb = new StringBuffer();
         BufferedImage image = ImageIO.read(new File(url));
         WritableRaster raster = image.getRaster();
 
@@ -54,98 +54,113 @@ public class Coder {
             int i = 0;
             for(int x = 0; x < width; x++){
                 if(image.getRGB(x, y) == -16777216){
-                  //  sb.append("0");
                     bits[y][x] = '0';
                 }
                 else{
-                   /// sb.append("1");
                     bits[y][x] = '1';
                 }
                 i++;
                 if(i == width) {
-                   // sb.append("\n");
                     i = 0;
                 }
             }
         }
 
-        readMethod(getCounts());
-        deleteLines();
-        System.out.println();
-        decode();
-
-        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_INT_RGB);
-        for(int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if(bits[y][x] == '0') {
-                    fin.setRGB(x, y, -16777216);
-                } else  {
-                    fin.setRGB(x, y, 16777215);
-                }
-            }
-        }
-        ImageIO.write(fin, "bmp", new File("result.bmp"));
-    }
-
-    public void deleteLines() {
-        for(int i=0; i<height - 1; i++) {
-            if(bits[i + 1][width] == 'y') {
-                for(int j=0;j<width-1;j++) {
-                    bits[i][j] = 'x';
-                }
-                bits[i][width] = 'p';
-            }
-        }
-
-        for(int i=0; i<height; i++) {
-            for(int j=0; j<width-1; j++) {
-                System.out.print(bits[i][j]);
+        System.out.println("Биты файла:");
+        for(int l=0; l<height; l++) {
+            for(int j=0; j<width; j++) {
+                System.out.print(bits[l][j]);
             }
             System.out.println();
         }
-    }
 
-    public void decode() {
-        for(int i=0; i<height - 1; i++) {
-            if(bits[i][width] == 'p') {
-                for(int j=0;j<width-1;j++) {
-                    bits[i][j] = bits[i - 1][j];
-                }
-            }
-        }
-
-        for(int i=0; i<height; i++) {
-            for(int j=0; j<width-1; j++) {
-                System.out.print(bits[i][j]);
+        System.out.println("Повторения:");
+        ArrayList<ArrayList<Integer>> counts = getCounts();
+        for(ArrayList<Integer> list : counts) {
+            for(Integer count : list) {
+                System.out.print(count + " ");
             }
             System.out.println();
         }
+
+
+//        readMethod(getCounts());
+//        deleteLines();
+//        System.out.println();
+//        decode();
+//
+//        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_INT_RGB);
+//        for(int y = 0; y < height; y++) {
+//            for (int x = 0; x < width; x++) {
+//                if(bits[y][x] == '0') {
+//                    fin.setRGB(x, y, -16777216);
+//                } else  {
+//                    fin.setRGB(x, y, 16777215);
+//                }
+//            }
+//        }
+//        ImageIO.write(fin, "bmp", new File("result.bmp"));
     }
-
-    public void readMethod(ArrayList<ArrayList<Integer>> counts) {
-        for(int i=0; i<height-1; i++) {
-            ArrayList<Integer> current = counts.get(i);
-            ArrayList<Integer> next = counts.get(i+1);
-
-            int size;
-            if(current.size() < next.size()) {
-                size = current.size();
-            } else {
-                size = next.size();
-            }
-
-            for(int j=0; j<size; j++) {
-                if(Math.abs(current.get(j) - next.get(j)) >= 3) {
-                    System.out.println("Не повторяем");
-                    bits[i][width] = 'n';
-                } else {
-                    System.out.println("Повторяем");
-                    bits[i][width] = 'y';
-                }
-            }
-        }
-    }
-
+//
+//    public void deleteLines() {
+//        for(int i=0; i<height - 1; i++) {
+//            if(bits[i + 1][width] == 'y') {
+//                for(int j=0;j<width-1;j++) {
+//                    bits[i][j] = 'x';
+//                }
+//                bits[i][width] = 'p';
+//            }
+//        }
+//
+//        for(int i=0; i<height; i++) {
+//            for(int j=0; j<width-1; j++) {
+//                System.out.print(bits[i][j]);
+//            }
+//            System.out.println();
+//        }
+//    }
+//
+//    public void decode() {
+//        for(int i=0; i<height - 1; i++) {
+//            if(bits[i][width] == 'p') {
+//                for(int j=0;j<width-1;j++) {
+//                    bits[i][j] = bits[i - 1][j];
+//                }
+//            }
+//        }
+//
+//        for(int i=0; i<height; i++) {
+//            for(int j=0; j<width-1; j++) {
+//                System.out.print(bits[i][j]);
+//            }
+//            System.out.println();
+//        }
+//    }
+//
+//    public void readMethod(ArrayList<ArrayList<Integer>> counts) {
+//        for(int i=0; i<height-1; i++) {
+//            ArrayList<Integer> current = counts.get(i);
+//            ArrayList<Integer> next = counts.get(i+1);
+//
+//            int size;
+//            if(current.size() < next.size()) {
+//                size = current.size();
+//            } else {
+//                size = next.size();
+//            }
+//
+//            for(int j=0; j<size; j++) {
+//                if(Math.abs(current.get(j) - next.get(j)) >= 3) {
+//                    System.out.println("Не повторяем");
+//                    bits[i][width] = 'n';
+//                } else {
+//                    System.out.println("Повторяем");
+//                    bits[i][width] = 'y';
+//                }
+//            }
+//        }
+//    }
+//
     public ArrayList<ArrayList<Integer>> getCounts() {
         ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
 
@@ -154,8 +169,6 @@ public class Coder {
             ArrayList<Integer> countCurrent = new ArrayList<>();
             int count = 0;
             for(int j=0; j<width - 1; j++) {
-                System.out.print(bits[i][j]);
-
                 if(bits[i][j] == '1' && white) {
                     count++;
                 }
@@ -178,16 +191,7 @@ public class Coder {
                 }
             }
             counts.add(countCurrent);
-            System.out.println();
         }
-        System.out.println();
-        for(ArrayList<Integer> list : counts) {
-            for(Integer i : list) {
-                System.out.print(i + " ");
-            }
-            System.out.println();
-        }
-
         return counts;
     }
 }
