@@ -3,9 +3,9 @@ import com.sun.javafx.iio.ImageStorage;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
@@ -16,6 +16,30 @@ public class Coder {
     private int width;
 
     private char[][] bits;
+
+    //Читаем кодовую таблицу
+    private String[][] codes = new String[92][3];
+    public void readCodes(String path) throws IOException {
+        FileInputStream fstream = new FileInputStream(path);
+        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+        String strLine;
+        String[] line;
+        int i=0;
+        while ((strLine = br.readLine()) != null){
+            line = strLine.split(" ");
+            for(int j=0; j<3; j++) {
+                codes[i][j] = line[j];
+            }
+            i++;
+        }
+
+        for(int l=0; l<92; l++) {
+           for(int j=0; j<3; j++) {
+               System.out.print(codes[l][j] + " ");
+           }
+            System.out.println();
+        }
+    }
 
     public void read(String url) throws IOException {
         //StringBuffer sb = new StringBuffer();
@@ -51,12 +75,12 @@ public class Coder {
         decode();
 
         BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_INT_RGB);
-        for(int y = 0; y < 700; y++) {
-            for (int x = 0; x < 700; x++) {
+        for(int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 if(bits[y][x] == '0') {
                     fin.setRGB(x, y, -16777216);
                 } else  {
-                    fin.setRGB(x, y, 10000000);
+                    fin.setRGB(x, y, 16777215);
                 }
             }
         }
