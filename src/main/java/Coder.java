@@ -1,5 +1,3 @@
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.*;
 import java.util.ArrayList;
@@ -13,6 +11,7 @@ public class Coder {
     private String[][] codes = new String[92][3];
     private ImageHandler imageHandler = new ImageHandler();
     private InfoPrinter printer = new InfoPrinter();
+    private BinCalculator calculator = new BinCalculator();
 
     //Делает все
     public void openAndRead(String url) throws IOException {
@@ -38,32 +37,24 @@ public class Coder {
         StringBuilder s = new StringBuilder();
         boolean white = true;
         int len;
-        System.out.println("KEKEKE");
-        for (ArrayList<Integer> in : counts) {
-            //s = new StringBuilder();
-            for (Integer inin : in) {
-                System.out.print(inin + " ");
-            }
-        }
-        System.out.println();
+        printer.printRepeats(counts);
 
         int countsNum = 0;
-        for (ArrayList<Integer> in : counts) {
-            //s = new StringBuilder();
-            for (Integer inin : in) {
-                while (inin > 64) {
+        for (ArrayList<Integer> countList : counts) {
+            for (Integer count : countList) {
+                while (count > 64) {
                     for (int i = 90; i >= 0; i--) {
-                        if (Integer.parseInt(codes[i][0]) <= inin) {
-                            inin -= Integer.parseInt(codes[i][0]);
+                        if (Integer.parseInt(codes[i][0]) <= count) {
+                            count -= Integer.parseInt(codes[i][0]);
                             System.out.print(codes[i][0] + " ");
                             s.append(codes[i][white ? 1 : 2]);
                             break;
                         }
                     }
                 }
-                if (inin != 0) {
+                if (count != 0) {
                     for (int i = 0; i < 92; i++) {
-                        if (Integer.parseInt(codes[i][0]) == inin) {
+                        if (Integer.parseInt(codes[i][0]) == count) {
                             System.out.print(codes[i][0] + " ");
 
                             s.append(codes[i][white ? 1 : 2]);
@@ -71,7 +62,6 @@ public class Coder {
                         }
                     }
                 }
-
                 white = !white;
             }
 
@@ -93,36 +83,11 @@ public class Coder {
 
         //KOSTIL
         len = s.length();
-        //to 10
-        while (s.length() != 0) {
-            if (s.length() < 8) {
-                haffmanBytes.add(Integer.parseInt(s.substring(0), 2));
-                s.delete(0, s.length());
-            } else {
-                haffmanBytes.add(Integer.parseInt(s.substring(0, 8), 2));
-                s.delete(0, 8);
-            }
-        }
-
-        //toBinary
-        // PUT -1 to size and not append last
-        for (int j = 0; j < haffmanBytes.size(); j++) {
-            String strX = Integer.toBinaryString(haffmanBytes.get(j));
-            if (strX.length() < 8) {
-                for (int i = 0; i < 8 - strX.length(); i++) {
-                    s.append("0");
-                }
-                s.append(strX);
-            } else {
-                s.append(Integer.toBinaryString(haffmanBytes.get(j)));
-            }
-        }
-        //s.append(haffmanBytes.get(haffmanBytes.size() - 1));
-        s.delete(len, s.length());
+        calculator.toDec(s, haffmanBytes);
+        calculator.toBin(s,haffmanBytes,len);
         System.out.println(s.toString());
 
         StringBuilder builder = new StringBuilder();
-
         white = true;
         while (s.length() != 0) {
             int countRepeats = 0;
@@ -132,13 +97,8 @@ public class Coder {
                 if (tmp.equals("000000000000")) {
                     System.out.print(" END ");
                     haffmanBuffer.add(builder.toString());
-                    //System.out.print(0 + " ");
                     s.delete(0, s.length() >= j ? j : s.length());
                 }
-//                if(tmp.equals("111111111111")){
-//                    System.out.print(" REPEAT ");
-//                    builder.append("p");
-//                }
                 if (tmp.equals(codes[91][1])) {
                     white = false;
                     int counter = 0;
@@ -177,17 +137,6 @@ public class Coder {
         }
     }
 
-    //Удаление строк
-    public void deleteLines() {
-        for (int i = 0; i < buffer.size() - 1; i++) {
-            while (buffer.get(i++).contains("y") && i < buffer.size() - 1) {
-                buffer.set(i - 1, buffer.get(i - 1) + "p");
-                buffer.remove(i);
-                counts.remove(i);
-            }
-        }
-    }
-
     //Декодирование
     public void decode() {
         for (int i = 0; i < haffmanBuffer.size() - 1; i++) {
@@ -197,7 +146,6 @@ public class Coder {
                 i--;
             }
         }
-
         buffer.clear();
         StringBuilder builder;
         boolean white;
@@ -215,6 +163,7 @@ public class Coder {
         }
     }
 
+    //READ
     public void readMethod(ArrayList<ArrayList<Integer>> counts) {
         for (int i = 0; i < counts.size() - 1; i++) {
             ArrayList<Integer> current = counts.get(i);
@@ -227,7 +176,6 @@ public class Coder {
                 System.out.print(x + " ");
             }
             System.out.println();
-
             int size = current.size() < next.size() ? current.size() : next.size();
 
             int cur = 0, nex = 0;
@@ -251,12 +199,22 @@ public class Coder {
         }
     }
 
-    //Получение всех длин пследовательностей
+    //Удаление строк
+    public void deleteLines() {
+        for (int i = 0; i < buffer.size() - 1; i++) {
+            while (buffer.get(i++).contains("y") && i < buffer.size() - 1) {
+                buffer.set(i - 1, buffer.get(i - 1) + "p");
+                buffer.remove(i);
+                counts.remove(i);
+            }
+        }
+    }
+
+    //Получение всех длин последовательностей
     public ArrayList<ArrayList<Integer>> getCounts() {
         ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
 
         for (String s : buffer) {
-
             boolean white = true;
             ArrayList<Integer> countCurrent = new ArrayList<>();
             int count = 0;
@@ -277,7 +235,6 @@ public class Coder {
                     }
                     count++;
                 }
-
             }
             countCurrent.add(count);
             counts.add(countCurrent);
