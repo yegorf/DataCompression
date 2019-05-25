@@ -6,88 +6,33 @@ import java.util.ArrayList;
 
 
 public class Coder {
-
-    private int height;
-    private int width;
-
+    private ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
     private ArrayList<String> buffer = new ArrayList<>();
     private ArrayList<String> haffmanBuffer = new ArrayList<>();
-    private ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
     private ArrayList<Integer> haffmanBytes = new ArrayList<>();
-
-
-    //Читаем кодовую таблицу
     private String[][] codes = new String[92][3];
+    private ImageHandler imageHandler = new ImageHandler();
+    private InfoPrinter printer = new InfoPrinter();
 
-    public void readCodes(String path) throws IOException {
-        FileInputStream fstream = new FileInputStream(path);
-        BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-        String strLine;
-        String[] line;
-        int i = 0;
-        while ((strLine = br.readLine()) != null) {
-            line = strLine.split(" ");
-            for (int j = 0; j < 3; j++) {
-                codes[i][j] = line[j];
-            }
-            i++;
-        }
-
-        for (int l = 0; l < 92; l++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.print(codes[l][j] + " ");
-            }
-            System.out.println();
-        }
-    }
-
-    //делает все
+    //Делает все
     public void openAndRead(String url) throws IOException {
-        BufferedImage image = ImageIO.read(new File(url));
-        WritableRaster raster = image.getRaster();
-
-        StringBuilder s = new StringBuilder();
-
-        width = raster.getWidth();
-        height = raster.getHeight();
-        for (int y = 0; y < height; y++) {
-            s = new StringBuilder();
-            for (int x = 0; x < width; x++) {
-                if (image.getRGB(x, y) == -16777216) {
-                    s.append('0');
-                } else {
-                    s.append('1');
-                }
-            }
-            s.append('n');
-            buffer.add(s.toString());
-        }
-
-        //print();
-
-        System.out.println("Repeats:");
+        WritableRaster raster = imageHandler.readFile(url, buffer);
+        codes = HaffmanTable.readCodes("codes.txt");
         counts = getCounts();
-        for (ArrayList<Integer> list : counts) {
-            for (Integer count : list) {
-                System.out.print(count + " ");
-            }
-            System.out.println();
-        }
+        printer.printRepeats(counts);
 
         readMethod(counts);
-        print();
+        printer.printBitsMatrix(buffer);
         System.out.println();
         deleteLines();
-        //print();
 
         haffmanMethod();
 
-
         decode();
-        print();
-        inImage(raster);
-
+        printer.printBitsMatrix(buffer);
+        imageHandler.createImage(raster, buffer);
     }
+
 
     private void haffmanMethod() {
         StringBuilder s = new StringBuilder();
@@ -142,7 +87,7 @@ public class Coder {
             white = true;
             countsNum++;
         }
-        // print
+
         System.out.println("HAFFMANBUFFER");
         System.out.println(s.toString());
 
@@ -158,11 +103,6 @@ public class Coder {
                 s.delete(0, 8);
             }
         }
-
-        //deprecate
-//        for (Integer x : haffmanBytes) {
-//            System.out.println(x);
-//        }
 
         //toBinary
         // PUT -1 to size and not append last
@@ -181,8 +121,6 @@ public class Coder {
         s.delete(len, s.length());
         System.out.println(s.toString());
 
-
-        //to codes
         StringBuilder builder = new StringBuilder();
 
         white = true;
@@ -237,37 +175,10 @@ public class Coder {
         for (String s1 : haffmanBuffer) {
             System.out.println(s1);
         }
-
     }
 
-    private void print() {
-        System.out.println("Bits:");
-        for (String str : buffer) {
-            for (char c : str.toCharArray()) {
-                System.out.print(c);
-            }
-            System.out.println();
-        }
-        System.out.println(buffer.size());
-    }
-
-    //пихаем в картинку
-    private void inImage(WritableRaster raster) throws IOException {
-        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_INT_RGB);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (buffer.get(y).charAt(x) == '0') {
-                    fin.setRGB(x, y, -16777216);
-                } else {
-                    fin.setRGB(x, y, 16777215);
-                }
-            }
-        }
-        ImageIO.write(fin, "bmp", new File("result.bmp"));
-    }
-
+    //Удаление строк
     public void deleteLines() {
-
         for (int i = 0; i < buffer.size() - 1; i++) {
             while (buffer.get(i++).contains("y") && i < buffer.size() - 1) {
                 buffer.set(i - 1, buffer.get(i - 1) + "p");
@@ -277,8 +188,9 @@ public class Coder {
         }
     }
 
+    //Декодирование
     public void decode() {
-        for (int i = 0; i < height - 1; i++) {
+        for (int i = 0; i < haffmanBuffer.size() - 1; i++) {
             if (haffmanBuffer.get(i).contains("p")) {
                 haffmanBuffer.set(i, haffmanBuffer.get(i).replace('p', ' '));
                 haffmanBuffer.add(i + 1, haffmanBuffer.get(i));
@@ -301,20 +213,10 @@ public class Coder {
             }
             buffer.add(builder.toString());
         }
-
-//        for (String s : buffer) {
-//            if (s.contains("y")) {
-//                s.replace('y', ' ');
-//            } else {
-//                s.replace('y', ' ');
-//            }
-//        }
-
-
     }
 
     public void readMethod(ArrayList<ArrayList<Integer>> counts) {
-        for (int i = 0; i < height - 1; i++) {
+        for (int i = 0; i < counts.size() - 1; i++) {
             ArrayList<Integer> current = counts.get(i);
             ArrayList<Integer> next = counts.get(i + 1);
             for (Integer x : current) {
@@ -349,16 +251,16 @@ public class Coder {
         }
     }
 
+    //Получение всех длин пследовательностей
     public ArrayList<ArrayList<Integer>> getCounts() {
         ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
-
 
         for (String s : buffer) {
 
             boolean white = true;
             ArrayList<Integer> countCurrent = new ArrayList<>();
             int count = 0;
-            for (int j = 0; j < width; j++) {
+            for (int j = 0; j < imageHandler.getWidth(); j++) {
                 if (s.charAt(j) == '1') {
                     if (!white) {
                         white = true;
@@ -381,6 +283,5 @@ public class Coder {
             counts.add(countCurrent);
         }
         return counts;
-
     }
 }
