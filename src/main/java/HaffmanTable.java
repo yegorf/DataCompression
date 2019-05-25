@@ -19,12 +19,6 @@ public class HaffmanTable {
             }
             i++;
         }
-        for (int l = 0; l < 92; l++) {
-            for (int j = 0; j < 3; j++) {
-                System.out.print(codes[l][j] + " ");
-            }
-            System.out.println();
-        }
         return codes;
     }
 }
