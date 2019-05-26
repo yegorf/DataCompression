@@ -44,6 +44,7 @@ public class Coder {
     //делает все
     public void openAndRead(String url) throws IOException {
         BufferedImage image = ImageIO.read(new File(url));
+
         WritableRaster raster = image.getRaster();
 
         StringBuilder s = new StringBuilder();
@@ -63,34 +64,58 @@ public class Coder {
             buffer.add(s.toString());
         }
 
-        print();
+        //print();
 
+        StringBuilder stringBuilder = new StringBuilder();
         System.out.println("Repeats:");
         counts = getCounts();
         for (ArrayList<Integer> list : counts) {
             for (Integer count : list) {
                 System.out.print(count + " ");
+                stringBuilder.append(count);
             }
             System.out.println();
         }
+        writeToFile("begin.txt", stringBuilder.toString());
+
 
         readMethod(counts);
-        print();
+        //print();
         System.out.println();
+        System.out.println("COUNTS SIZE = " + counts.size());
         printSize();
         deleteLines();
         //print();
+
+        stringBuilder = new StringBuilder();
+        for (ArrayList<Integer> list : counts) {
+            for (Integer count : list) {
+                //System.out.print(count + " ");
+                stringBuilder.append(count);
+            }
+            System.out.println();
+        }
+        writeToFile("end.txt", stringBuilder.toString());
+
         printSize();
+        System.out.println("COUNTS SIZE = " + counts.size());
         haffmanMethod();
 
 
         decode();
-        print();
+        // print();
         inImage(raster);
 
     }
 
-    private void printSize(){
+    private void writeToFile(String url, String text) throws IOException {
+        FileWriter fileWriter = new FileWriter(url);
+        fileWriter.write(text);
+        fileWriter.close();
+    }
+
+
+    private void printSize() {
         System.out.println("SIZE = " + buffer.size());
     }
 
@@ -131,12 +156,11 @@ public class Coder {
                         }
                     }
                 }
-                s.append(Integer.toBinaryString((int)'-'));
+                s.append(Integer.toBinaryString((int) '-'));
                 white = !white;
-               // System.out.println("\naloalo");
-               // System.out.println(s.toString());
+                // System.out.println("\naloalo");
+                // System.out.println(s.toString());
             }
-
 
 
             //КОЛИЧЕСТВО ПОВТОРОВ КОДИРУЕМ
@@ -167,6 +191,9 @@ public class Coder {
                 s.delete(0, 8);
             }
         }
+
+
+
 
         //deprecate
 //        for (Integer x : haffmanBytes) {
@@ -216,7 +243,7 @@ public class Coder {
                     do {
                         counter += 12;
                         countRepeats++;
-                        if(s.length() < counter + 12){
+                        if (s.length() < counter + 12) {
                             break;
                         }
                     } while (s.substring(counter, counter + 12).equals(codes[91][1]));
@@ -231,7 +258,7 @@ public class Coder {
                     white = true;
                     break;
                 } else {
-                    if(tmp.equals("101101")){
+                    if (tmp.equals("101101")) {
                         System.out.print(".");
                         builder.append(summ + " ");
                         s.delete(s.indexOf("101101"), s.indexOf("101101") + 6);
@@ -239,15 +266,15 @@ public class Coder {
                         white = !white;
                         break;
                     }
-                        for (int i = 0; i < 92; i++) {
-                            if (codes[i][white ? 1 : 2].equals(tmp)) {
-                                //builder.append(codes[i][0] + " ");
-                                summ += Integer.parseInt(codes[i][0]);
-                                System.out.print(codes[i][0] + " ");
-                                s.delete(0, s.length() >= j ? j : s.length());
-                                break kek;
-                            }
+                    for (int i = 0; i < 92; i++) {
+                        if (codes[i][white ? 1 : 2].equals(tmp)) {
+                            //builder.append(codes[i][0] + " ");
+                            summ += Integer.parseInt(codes[i][0]);
+                            System.out.print(codes[i][0] + " ");
+                            s.delete(0, s.length() >= j ? j : s.length());
+                            break kek;
                         }
+                    }
 
                 }
             }
@@ -275,7 +302,7 @@ public class Coder {
 
     //пихаем в картинку
     private void inImage(WritableRaster raster) throws IOException {
-        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_INT_RGB);
+        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (buffer.get(y).charAt(x) == '0') {
@@ -292,7 +319,7 @@ public class Coder {
 
         for (int i = 0; i < buffer.size() - 1; i++) {
             int ind = i;
-            while (i + 1 < buffer.size() && buffer.get(i+1).contains("y")) {
+            while (i + 1 < buffer.size() && buffer.get(i + 1).contains("y")) {
                 buffer.set(ind, buffer.get(ind) + "p");
                 buffer.remove(i + 1);
                 counts.remove(i + 1);
@@ -305,12 +332,12 @@ public class Coder {
     public void decode() {
 
         //KOSTIL
-       // haffmanBuffer.remove(1);
+        // haffmanBuffer.remove(1);
 
         for (int i = 0; i < height - 1; i++) {
             int j = i + 1;
             while (haffmanBuffer.get(i).contains("p")) {
-                if(haffmanBuffer.get(i).indexOf('p') != -1) {
+                if (haffmanBuffer.get(i).indexOf('p') != -1) {
                     haffmanBuffer.add(j++, haffmanBuffer.get(i).substring(0, haffmanBuffer.get(i).indexOf('p') - 1));
                 }
                 haffmanBuffer.set(i, haffmanBuffer.get(i).replaceFirst("p", ""));
