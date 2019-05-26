@@ -63,7 +63,7 @@ public class Coder {
             buffer.add(s.toString());
         }
 
-        //print();
+        print();
 
         System.out.println("Repeats:");
         counts = getCounts();
@@ -77,9 +77,10 @@ public class Coder {
         readMethod(counts);
         print();
         System.out.println();
+        printSize();
         deleteLines();
         //print();
-
+        printSize();
         haffmanMethod();
 
 
@@ -87,6 +88,10 @@ public class Coder {
         print();
         inImage(raster);
 
+    }
+
+    private void printSize(){
+        System.out.println("SIZE = " + buffer.size());
     }
 
     private void haffmanMethod() {
@@ -97,6 +102,7 @@ public class Coder {
         for (ArrayList<Integer> in : counts) {
             //s = new StringBuilder();
             for (Integer inin : in) {
+
                 System.out.print(inin + " ");
             }
         }
@@ -120,15 +126,18 @@ public class Coder {
                     for (int i = 0; i < 92; i++) {
                         if (Integer.parseInt(codes[i][0]) == inin) {
                             System.out.print(codes[i][0] + " ");
-
                             s.append(codes[i][white ? 1 : 2]);
                             break;
                         }
                     }
                 }
-
+                s.append(Integer.toBinaryString((int)'-'));
                 white = !white;
+               // System.out.println("\naloalo");
+               // System.out.println(s.toString());
             }
+
+
 
             //КОЛИЧЕСТВО ПОВТОРОВ КОДИРУЕМ
             int pos = buffer.get(countsNum).indexOf("p");
@@ -184,7 +193,7 @@ public class Coder {
 
         //to codes
         StringBuilder builder = new StringBuilder();
-
+        int summ = 0;
         white = true;
         while (s.length() != 0) {
             int countRepeats = 0;
@@ -205,31 +214,44 @@ public class Coder {
                     white = false;
                     int counter = 0;
                     do {
-                        counter += 13;
+                        counter += 12;
                         countRepeats++;
-
-                    } while (s.substring(counter - 1, counter + 11).equals(codes[91][1]));
+                        if(s.length() < counter + 12){
+                            break;
+                        }
+                    } while (s.substring(counter, counter + 12).equals(codes[91][1]));
                     for (int i = 0; i < countRepeats - 1; i++) {
-                        builder.append(" p ");
+                        builder.append("p");
                     }
 
                     System.out.print(" EOL ");
                     haffmanBuffer.add(builder.toString());
                     builder = new StringBuilder();
                     s.delete(0, 12 * countRepeats);
+                    white = true;
                     break;
                 } else {
-                    for (int i = 0; i < 92; i++) {
-                        if (codes[i][white ? 1 : 2].equals(tmp)) {
-                            builder.append(codes[i][0] + " ");
-                            System.out.print(codes[i][0] + " ");
-                            s.delete(0, s.length() >= j ? j : s.length());
-                            break kek;
-                        }
+                    if(tmp.equals("101101")){
+                        System.out.print(".");
+                        builder.append(summ + " ");
+                        s.delete(s.indexOf("101101"), s.indexOf("101101") + 6);
+                        summ = 0;
+                        white = !white;
+                        break;
                     }
+                        for (int i = 0; i < 92; i++) {
+                            if (codes[i][white ? 1 : 2].equals(tmp)) {
+                                //builder.append(codes[i][0] + " ");
+                                summ += Integer.parseInt(codes[i][0]);
+                                System.out.print(codes[i][0] + " ");
+                                s.delete(0, s.length() >= j ? j : s.length());
+                                break kek;
+                            }
+                        }
+
                 }
             }
-            white = !white;
+
         }
 
         System.out.println();
@@ -269,22 +291,38 @@ public class Coder {
     public void deleteLines() {
 
         for (int i = 0; i < buffer.size() - 1; i++) {
-            while (buffer.get(i++).contains("y") && i < buffer.size() - 1) {
-                buffer.set(i - 1, buffer.get(i - 1) + "p");
-                buffer.remove(i);
-                counts.remove(i);
+            int ind = i;
+            while (i + 1 < buffer.size() && buffer.get(i+1).contains("y")) {
+                buffer.set(ind, buffer.get(ind) + "p");
+                buffer.remove(i + 1);
+                counts.remove(i + 1);
+
             }
+
         }
     }
 
     public void decode() {
+
+        //KOSTIL
+       // haffmanBuffer.remove(1);
+
         for (int i = 0; i < height - 1; i++) {
-            if (haffmanBuffer.get(i).contains("p")) {
-                haffmanBuffer.set(i, haffmanBuffer.get(i).replace('p', ' '));
-                haffmanBuffer.add(i + 1, haffmanBuffer.get(i));
-                i--;
+            int j = i + 1;
+            while (haffmanBuffer.get(i).contains("p")) {
+                if(haffmanBuffer.get(i).indexOf('p') != -1) {
+                    haffmanBuffer.add(j++, haffmanBuffer.get(i).substring(0, haffmanBuffer.get(i).indexOf('p') - 1));
+                }
+                haffmanBuffer.set(i, haffmanBuffer.get(i).replaceFirst("p", ""));
+
+
             }
+            //i = j - 1;
         }
+
+        //KOSTIL
+        haffmanBuffer.set(haffmanBuffer.size() - 1, haffmanBuffer.get(0));
+        //haffmanBuffer.add(haffmanBuffer.get(0));
 
         buffer.clear();
         StringBuilder builder;
@@ -334,15 +372,15 @@ public class Coder {
                 nex += next.get(j) + 1;
                 if (cur == nex && current.size() == 1 && next.size() == 1) {
                     System.out.println("Повторяем");
-                    buffer.set(i, buffer.get(i).replace('n', 'y'));
+                    buffer.set(i + 1, buffer.get(i + 1).replace('n', 'y'));
                 } else {
                     if (Math.abs(cur - nex) >= 3) {
                         System.out.println("Не повторяем");
-                        buffer.set(i, buffer.get(i).replace('y', 'n'));
+                        buffer.set(i + 1, buffer.get(i + 1).replace('y', 'n'));
                         break;
                     } else {
                         System.out.println("Повторяем");
-                        buffer.set(i, buffer.get(i).replace('n', 'y'));
+                        buffer.set(i + 1, buffer.get(i + 1).replace('n', 'y'));
                     }
                 }
             }
