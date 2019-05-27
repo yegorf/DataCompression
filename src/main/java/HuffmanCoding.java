@@ -26,7 +26,7 @@ public class HuffmanCoding {
         //Получаем длины последовательностей
         counts = getCounts();
         //Удаляем строки ридом
-        readCoding.readMethod(counts, imageHandler.getHeight(), buffer);
+        readCoding.readMethodWithDeletes(counts, buffer);
         //Кодируем Хаффманом
         haffmanMethod();
         System.out.println(haffmanBuffer);
