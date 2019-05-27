@@ -1,10 +1,13 @@
 import java.awt.image.WritableRaster;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 
 
 public class HuffmanCoding {
-    private String CODES_URL = "codes.txt";
+    private final String CODES_URL = "codes.txt";
+    private final int MAX_CODE_SIZE = 13;
+
     private ArrayList<String> buffer = new ArrayList<>();
     private ArrayList<String> haffmanBuffer = new ArrayList<>();
     private ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
@@ -26,30 +29,34 @@ public class HuffmanCoding {
         readCoding.readMethod(counts, imageHandler.getHeight(), buffer);
         //Кодируем Хаффманом
         haffmanMethod();
+
+        System.out.println();
+        System.out.println("Закодировано!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.out.println(haffmanBuffer);
     }
 
-    private void haffmanMethod() {
+    private void haffmanMethod() throws IOException {
         StringBuilder s = new StringBuilder();
         boolean white = true;
         int len;
         InfoPrinter.printRepeats(counts);
 
         int countsNum = 0;
-        for (ArrayList<Integer> in : counts) {
-            for (Integer inin : in) {
-                while (inin > 64) {
+        for (ArrayList<Integer> countList : counts) {
+            for (Integer count : countList) {
+                while (count > 64) {
                     for (int i = 90; i >= 0; i--) {
-                        if (Integer.parseInt(codes[i][0]) <= inin) {
-                            inin -= Integer.parseInt(codes[i][0]);
+                        if (Integer.parseInt(codes[i][0]) <= count) {
+                            count -= Integer.parseInt(codes[i][0]);
                             System.out.print(codes[i][0] + " ");
                             s.append(codes[i][white ? 1 : 2]);
                             break;
                         }
                     }
                 }
-                if (inin != 0) {
+                if (count != 0) {
                     for (int i = 0; i < 92; i++) {
-                        if (Integer.parseInt(codes[i][0]) == inin) {
+                        if (Integer.parseInt(codes[i][0]) == count) {
                             System.out.print(codes[i][0] + " ");
                             s.append(codes[i][white ? 1 : 2]);
                             break;
@@ -72,21 +79,25 @@ public class HuffmanCoding {
             white = true;
             countsNum++;
         }
-        System.out.println("HAFFMANBUFFER");
-        System.out.println(s.toString());
 
+        System.out.println();
+        System.out.println("КОДЫ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        System.out.println("cod " + s.toString());
+        //createArchive(s);
+        writeFile(s);
+        s = readFile();
         len = s.length();
         calculator.toDec(s, haffmanBytes);
         calculator.toBin(s, haffmanBytes, len);
 
-        //to codes
+        //В коды
         StringBuilder builder = new StringBuilder();
         int summ = 0;
         white = true;
         while (s.length() != 0) {
             int countRepeats = 0;
             kek:
-            for (int j = 13; j > 0; j--) {
+            for (int j = MAX_CODE_SIZE; j > 0; j--) {
                 String tmp = s.substring(0, s.length() >= j ? j : s.length());
                 if (tmp.equals("000000000000")) {
                     System.out.print(" END ");
@@ -133,6 +144,49 @@ public class HuffmanCoding {
             }
         }
     }
+/////////////////////////////////////////////////////////
+    private int ost;
+    public void writeFile(StringBuilder bitsBuffer) throws IOException {
+        ost = 0;
+        DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("archive.txt")));
+        while (bitsBuffer.length() > 0) {
+            while (bitsBuffer.length() < 8) {
+                bitsBuffer.append('0');
+                ost ++;
+            }
+            outputStream.writeByte((byte) Integer.parseInt(bitsBuffer.substring(0, 8), 2));
+            bitsBuffer.delete(0, 8);
+        }
+        outputStream.close();
+    }
+
+    private String byteToBits(byte b) {
+        return String.format("%" + 8 + "s", Integer.toBinaryString(b & 0xFF))
+                .replace(' ', '0');
+    }
+
+    private void read(StringBuilder bitTemp, DataInputStream in) throws IOException {
+        bitTemp.append(byteToBits(in.readByte()));
+    }
+
+    public StringBuilder readFile() throws IOException {
+        DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream("archive.txt")));
+        StringBuilder s = new StringBuilder();
+        boolean neof = true;
+        while(neof) {
+            try {
+                read(s, inputStream);
+            } catch (EOFException e) {
+                neof = false;
+            }
+        }
+        String ss = s.substring(0, s.length() - ost); //ТУТ КОСТЫЫЛь
+        s = new StringBuilder(ss);
+        System.out.println("AAA " + s);
+        return s;
+    }
+    //////////////////////////////////////////////////////////////////////////
+
 
     public void decode(String url) throws IOException {
         for (int i = 0; i < imageHandler.getHeight() - 1; i++) {
