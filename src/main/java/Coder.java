@@ -47,7 +47,7 @@ public class Coder {
 
         WritableRaster raster = image.getRaster();
 
-        StringBuilder s = new StringBuilder();
+        StringBuilder s;
 
         width = raster.getWidth();
         height = raster.getHeight();
@@ -71,41 +71,31 @@ public class Coder {
         counts = getCounts();
         for (ArrayList<Integer> list : counts) {
             for (Integer count : list) {
-                System.out.print(count + " ");
+                // System.out.print(count + " ");
                 stringBuilder.append(count);
             }
-            System.out.println();
+            //  System.out.println();
         }
         writeToFile("begin.txt", stringBuilder.toString());
 
-
-        readMethod(counts);
-        //print();
         System.out.println();
         System.out.println("COUNTS SIZE = " + counts.size());
         printSize();
-        deleteLines();
+
+        //readMethod(counts);
+        readMethodWithDeletes(counts);
         //print();
 
-        stringBuilder = new StringBuilder();
-        for (ArrayList<Integer> list : counts) {
-            for (Integer count : list) {
-                //System.out.print(count + " ");
-                stringBuilder.append(count);
-            }
-            System.out.println();
-        }
-        writeToFile("end.txt", stringBuilder.toString());
+        //deleteLines();
+        //print();
 
         printSize();
         System.out.println("COUNTS SIZE = " + counts.size());
         haffmanMethod();
 
-
         decode();
         // print();
         inImage(raster);
-
     }
 
     private void writeToFile(String url, String text) throws IOException {
@@ -119,19 +109,19 @@ public class Coder {
         System.out.println("SIZE = " + buffer.size());
     }
 
-    private void haffmanMethod() {
+    private void haffmanMethod() throws IOException {
         StringBuilder s = new StringBuilder();
         boolean white = true;
         int len;
-        System.out.println("KEKEKE");
-        for (ArrayList<Integer> in : counts) {
-            //s = new StringBuilder();
-            for (Integer inin : in) {
-
-                System.out.print(inin + " ");
-            }
-        }
-        System.out.println();
+//        System.out.println("KEKEKE");
+//        for (ArrayList<Integer> in : counts) {
+//            //s = new StringBuilder();
+//            for (Integer inin : in) {
+//
+//                System.out.print(inin + " ");
+//            }
+//        }
+//        System.out.println();
 
         int countsNum = 0;
         for (ArrayList<Integer> in : counts) {
@@ -158,10 +148,7 @@ public class Coder {
                 }
                 s.append(Integer.toBinaryString((int) '-'));
                 white = !white;
-                // System.out.println("\naloalo");
-                // System.out.println(s.toString());
             }
-
 
             //КОЛИЧЕСТВО ПОВТОРОВ КОДИРУЕМ
             int pos = buffer.get(countsNum).indexOf("p");
@@ -176,8 +163,8 @@ public class Coder {
             countsNum++;
         }
         // print
-        System.out.println("HAFFMANBUFFER");
-        System.out.println(s.toString());
+        //  System.out.println("HAFFMANBUFFER");
+        // System.out.println(s.toString());
 
         //KOSTIL
         len = s.length();
@@ -192,13 +179,15 @@ public class Coder {
             }
         }
 
-
-
-
-        //deprecate
-//        for (Integer x : haffmanBytes) {
-//            System.out.println(x);
-//        }
+        StringBuilder stringBuilder = new StringBuilder();
+        for (ArrayList<Integer> list : counts) {
+            for (Integer count : list) {
+                //System.out.print(count + " ");
+                stringBuilder.append(count);
+            }
+            //  System.out.println();
+        }
+        writeToFile("end.txt", stringBuilder.toString());
 
         //toBinary
         // PUT -1 to size and not append last
@@ -215,7 +204,7 @@ public class Coder {
         }
         //s.append(haffmanBytes.get(haffmanBytes.size() - 1));
         s.delete(len, s.length());
-        System.out.println(s.toString());
+        // System.out.println(s.toString());
 
 
         //to codes
@@ -230,13 +219,8 @@ public class Coder {
                 if (tmp.equals("000000000000")) {
                     System.out.print(" END ");
                     haffmanBuffer.add(builder.toString());
-                    //System.out.print(0 + " ");
                     s.delete(0, s.length() >= j ? j : s.length());
                 }
-//                if(tmp.equals("111111111111")){
-//                    System.out.print(" REPEAT ");
-//                    builder.append("p");
-//                }
                 if (tmp.equals(codes[91][1])) {
                     white = false;
                     int counter = 0;
@@ -268,7 +252,6 @@ public class Coder {
                     }
                     for (int i = 0; i < 92; i++) {
                         if (codes[i][white ? 1 : 2].equals(tmp)) {
-                            //builder.append(codes[i][0] + " ");
                             summ += Integer.parseInt(codes[i][0]);
                             System.out.print(codes[i][0] + " ");
                             s.delete(0, s.length() >= j ? j : s.length());
@@ -281,11 +264,11 @@ public class Coder {
 
         }
 
-        System.out.println();
-        System.out.println("#!@I&^%R");
-        for (String s1 : haffmanBuffer) {
-            System.out.println(s1);
-        }
+        //   System.out.println();
+        //  System.out.println("#!@I&^%R");
+        // for (String s1 : haffmanBuffer) {
+        //     System.out.println(s1);
+        // }
 
     }
 
@@ -323,7 +306,6 @@ public class Coder {
                 buffer.set(ind, buffer.get(ind) + "p");
                 buffer.remove(i + 1);
                 counts.remove(i + 1);
-
             }
 
         }
@@ -367,29 +349,21 @@ public class Coder {
             buffer.add(builder.toString());
         }
 
-//        for (String s : buffer) {
-//            if (s.contains("y")) {
-//                s.replace('y', ' ');
-//            } else {
-//                s.replace('y', ' ');
-//            }
-//        }
-
-
     }
+
 
     public void readMethod(ArrayList<ArrayList<Integer>> counts) {
         for (int i = 0; i < height - 1; i++) {
             ArrayList<Integer> current = counts.get(i);
             ArrayList<Integer> next = counts.get(i + 1);
-            for (Integer x : current) {
-                System.out.print(x + " ");
-            }
-            System.out.println();
-            for (Integer x : next) {
-                System.out.print(x + " ");
-            }
-            System.out.println();
+//            for (Integer x : current) {
+//                System.out.print(x + " ");
+//            }
+//            System.out.println();
+//            for (Integer x : next) {
+//                System.out.print(x + " ");
+//            }
+//            System.out.println();
 
             int size = current.size() < next.size() ? current.size() : next.size();
 
@@ -398,18 +372,54 @@ public class Coder {
                 cur += current.get(j) + 1;
                 nex += next.get(j) + 1;
                 if (cur == nex && current.size() == 1 && next.size() == 1) {
-                    System.out.println("Повторяем");
+                    //   System.out.println("Повторяем");
                     buffer.set(i + 1, buffer.get(i + 1).replace('n', 'y'));
                 } else {
                     if (Math.abs(cur - nex) >= 3) {
-                        System.out.println("Не повторяем");
+                        //     System.out.println("Не повторяем");
                         buffer.set(i + 1, buffer.get(i + 1).replace('y', 'n'));
                         break;
                     } else {
-                        System.out.println("Повторяем");
+                        //   System.out.println("Повторяем");
                         buffer.set(i + 1, buffer.get(i + 1).replace('n', 'y'));
                     }
                 }
+            }
+        }
+    }
+
+    public void readMethodWithDeletes(ArrayList<ArrayList<Integer>> counts) {
+        for (int i = 0; i < buffer.size() - 1; i++) {
+            ArrayList<Integer> current = counts.get(i);
+            ArrayList<Integer> next = counts.get(i + 1);
+
+            int size = current.size() < next.size() ? current.size() : next.size();
+            boolean repeat = false;
+
+            int cur = 0, nex = 0;
+            for (int j = 0; j < size; j++) {
+                cur += current.get(j) + 1;
+                nex += next.get(j) + 1;
+                if (cur == nex && current.size() == 1 && next.size() == 1) {
+                    //   System.out.println("Повторяем");
+                    repeat = true;
+                } else {
+                    if (Math.abs(cur - nex) >= 3) {
+                        //     System.out.println("Не повторяем");
+                        repeat = false;
+                        break;
+                    } else {
+                        //   System.out.println("Повторяем");
+                        repeat = true;
+                    }
+                }
+
+            }
+            if (repeat) {
+                buffer.set(i, buffer.get(i) + "p");
+                buffer.remove(i + 1);
+                counts.remove(i + 1);
+                i--;
             }
         }
     }
