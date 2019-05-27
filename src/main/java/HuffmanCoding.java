@@ -3,65 +3,60 @@ import java.io.*;
 import java.util.ArrayList;
 
 
-public class Coder {
-    private ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
+public class HuffmanCoding {
+    private String CODES_URL = "codes.txt";
     private ArrayList<String> buffer = new ArrayList<>();
     private ArrayList<String> haffmanBuffer = new ArrayList<>();
+    private ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
     private ArrayList<Integer> haffmanBytes = new ArrayList<>();
-    private String[][] codes = new String[92][3];
     private ImageHandler imageHandler = new ImageHandler();
-    private InfoPrinter printer = new InfoPrinter();
+    private String[][] codes = new String[92][3];
     private BinCalculator calculator = new BinCalculator();
+    private ReadCoding readCoding = new ReadCoding();
+    private WritableRaster raster;
 
-    //Делает все
-    public void openAndRead(String url) throws IOException {
-        WritableRaster raster = imageHandler.readFile(url, buffer);
-        codes = HaffmanTable.readCodes("codes.txt");
+    public void encode(String url) throws IOException {
+        //Получаем таблицу кодов Хаффмана
+        codes = HaffmanTable.readCodes(CODES_URL);
+        //Читаем картинку в биты
+        raster = imageHandler.readFile(url, buffer);
+        //Получаем длины последовательностей
         counts = getCounts();
-        printer.printRepeats(counts);
-
-        readMethod(counts);
-        printer.printBitsMatrix(buffer);
-        System.out.println();
-        deleteLines();
-
+        //Удаляем строки ридом
+        readCoding.readMethod(counts, imageHandler.getHeight(), buffer);
+        //Кодируем Хаффманом
         haffmanMethod();
-
-        decode();
-        printer.printBitsMatrix(buffer);
-        imageHandler.createImage(raster, buffer);
     }
-
 
     private void haffmanMethod() {
         StringBuilder s = new StringBuilder();
         boolean white = true;
         int len;
-        printer.printRepeats(counts);
+        InfoPrinter.printRepeats(counts);
 
         int countsNum = 0;
-        for (ArrayList<Integer> countList : counts) {
-            for (Integer count : countList) {
-                while (count > 64) {
+        for (ArrayList<Integer> in : counts) {
+            for (Integer inin : in) {
+                while (inin > 64) {
                     for (int i = 90; i >= 0; i--) {
-                        if (Integer.parseInt(codes[i][0]) <= count) {
-                            count -= Integer.parseInt(codes[i][0]);
+                        if (Integer.parseInt(codes[i][0]) <= inin) {
+                            inin -= Integer.parseInt(codes[i][0]);
                             System.out.print(codes[i][0] + " ");
                             s.append(codes[i][white ? 1 : 2]);
                             break;
                         }
                     }
                 }
-                if (count != 0) {
+                if (inin != 0) {
                     for (int i = 0; i < 92; i++) {
-                        if (Integer.parseInt(codes[i][0]) == count) {
+                        if (Integer.parseInt(codes[i][0]) == inin) {
                             System.out.print(codes[i][0] + " ");
-
                             s.append(codes[i][white ? 1 : 2]);
                             break;
                         }
                     }
                 }
+                s.append(Integer.toBinaryString((int) '-'));
                 white = !white;
             }
 
@@ -77,17 +72,16 @@ public class Coder {
             white = true;
             countsNum++;
         }
-
         System.out.println("HAFFMANBUFFER");
         System.out.println(s.toString());
 
-        //KOSTIL
         len = s.length();
         calculator.toDec(s, haffmanBytes);
-        calculator.toBin(s,haffmanBytes,len);
-        System.out.println(s.toString());
+        calculator.toBin(s, haffmanBytes, len);
 
+        //to codes
         StringBuilder builder = new StringBuilder();
+        int summ = 0;
         white = true;
         while (s.length() != 0) {
             int countRepeats = 0;
@@ -100,26 +94,36 @@ public class Coder {
                     s.delete(0, s.length() >= j ? j : s.length());
                 }
                 if (tmp.equals(codes[91][1])) {
-                    white = false;
                     int counter = 0;
                     do {
-                        counter += 13;
+                        counter += 12;
                         countRepeats++;
-
-                    } while (s.substring(counter - 1, counter + 11).equals(codes[91][1]));
+                        if (s.length() < counter + 12) {
+                            break;
+                        }
+                    } while (s.substring(counter, counter + 12).equals(codes[91][1]));
                     for (int i = 0; i < countRepeats - 1; i++) {
-                        builder.append(" p ");
+                        builder.append("p");
                     }
 
                     System.out.print(" EOL ");
                     haffmanBuffer.add(builder.toString());
                     builder = new StringBuilder();
                     s.delete(0, 12 * countRepeats);
+                    white = true;
                     break;
                 } else {
+                    if (tmp.equals("101101")) {
+                        System.out.print(".");
+                        builder.append(summ + " ");
+                        s.delete(s.indexOf("101101"), s.indexOf("101101") + 6);
+                        summ = 0;
+                        white = !white;
+                        break;
+                    }
                     for (int i = 0; i < 92; i++) {
                         if (codes[i][white ? 1 : 2].equals(tmp)) {
-                            builder.append(codes[i][0] + " ");
+                            summ += Integer.parseInt(codes[i][0]);
                             System.out.print(codes[i][0] + " ");
                             s.delete(0, s.length() >= j ? j : s.length());
                             break kek;
@@ -127,25 +131,21 @@ public class Coder {
                     }
                 }
             }
-            white = !white;
-        }
-
-        System.out.println();
-        System.out.println("#!@I&^%R");
-        for (String s1 : haffmanBuffer) {
-            System.out.println(s1);
         }
     }
 
-    //Декодирование
-    public void decode() {
-        for (int i = 0; i < haffmanBuffer.size() - 1; i++) {
-            if (haffmanBuffer.get(i).contains("p")) {
-                haffmanBuffer.set(i, haffmanBuffer.get(i).replace('p', ' '));
-                haffmanBuffer.add(i + 1, haffmanBuffer.get(i));
-                i--;
+    public void decode(String url) throws IOException {
+        for (int i = 0; i < imageHandler.getHeight() - 1; i++) {
+            int j = i + 1;
+            while (haffmanBuffer.get(i).contains("p")) {
+                if (haffmanBuffer.get(i).indexOf('p') != -1) {
+                    haffmanBuffer.add(j++, haffmanBuffer.get(i).substring(0, haffmanBuffer.get(i).indexOf('p') - 1));
+                }
+                haffmanBuffer.set(i, haffmanBuffer.get(i).replaceFirst("p", ""));
             }
         }
+        haffmanBuffer.set(haffmanBuffer.size() - 1, haffmanBuffer.get(0));
+
         buffer.clear();
         StringBuilder builder;
         boolean white;
@@ -161,56 +161,9 @@ public class Coder {
             }
             buffer.add(builder.toString());
         }
+        imageHandler.createImage(url, raster, buffer);
     }
 
-    //READ
-    public void readMethod(ArrayList<ArrayList<Integer>> counts) {
-        for (int i = 0; i < counts.size() - 1; i++) {
-            ArrayList<Integer> current = counts.get(i);
-            ArrayList<Integer> next = counts.get(i + 1);
-            for (Integer x : current) {
-                System.out.print(x + " ");
-            }
-            System.out.println();
-            for (Integer x : next) {
-                System.out.print(x + " ");
-            }
-            System.out.println();
-            int size = current.size() < next.size() ? current.size() : next.size();
-
-            int cur = 0, nex = 0;
-            for (int j = 0; j < size; j++) {
-                cur += current.get(j) + 1;
-                nex += next.get(j) + 1;
-                if (cur == nex && current.size() == 1 && next.size() == 1) {
-                    System.out.println("Повторяем");
-                    buffer.set(i, buffer.get(i).replace('n', 'y'));
-                } else {
-                    if (Math.abs(cur - nex) >= 3) {
-                        System.out.println("Не повторяем");
-                        buffer.set(i, buffer.get(i).replace('y', 'n'));
-                        break;
-                    } else {
-                        System.out.println("Повторяем");
-                        buffer.set(i, buffer.get(i).replace('n', 'y'));
-                    }
-                }
-            }
-        }
-    }
-
-    //Удаление строк
-    public void deleteLines() {
-        for (int i = 0; i < buffer.size() - 1; i++) {
-            while (buffer.get(i++).contains("y") && i < buffer.size() - 1) {
-                buffer.set(i - 1, buffer.get(i - 1) + "p");
-                buffer.remove(i);
-                counts.remove(i);
-            }
-        }
-    }
-
-    //Получение всех длин последовательностей
     public ArrayList<ArrayList<Integer>> getCounts() {
         ArrayList<ArrayList<Integer>> counts = new ArrayList<>();
 

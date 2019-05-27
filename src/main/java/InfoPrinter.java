@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class InfoPrinter {
     //Вывод матрицы бит
-    public void printBitsMatrix(ArrayList<String> buffer) {
+    public static void printBitsMatrix(ArrayList<String> buffer) {
         System.out.println("Bits:");
         for (String str : buffer) {
             for (char c : str.toCharArray()) {
@@ -14,7 +14,7 @@ public class InfoPrinter {
     }
 
     //Вывод последовательностей повторений
-    public void printRepeats(ArrayList<ArrayList<Integer>> counts) {
+    public static void printRepeats(ArrayList<ArrayList<Integer>> counts) {
         System.out.println("Repeats:");
         //counts = getCounts();
         for (ArrayList<Integer> list : counts) {

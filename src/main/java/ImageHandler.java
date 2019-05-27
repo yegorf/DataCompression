@@ -12,13 +12,14 @@ public class ImageHandler {
     public int getWidth() {
         return width;
     }
+    public int getHeight() { return height;}
 
     //Считывание картинки в матрицу бит
     public WritableRaster readFile(String url, ArrayList<String> buffer) throws IOException {
         BufferedImage image = ImageIO.read(new File(url));
         WritableRaster raster = image.getRaster();
-
         StringBuilder s;
+
         width = raster.getWidth();
         height = raster.getHeight();
         for (int y = 0; y < height; y++) {
@@ -37,8 +38,10 @@ public class ImageHandler {
     }
 
     //Создаем картинку
-    public void createImage(WritableRaster raster, ArrayList<String> buffer) throws IOException {
-        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_INT_RGB);
+    public void createImage(String url, WritableRaster raster, ArrayList<String> buffer) throws IOException {
+        System.out.println(height);
+        System.out.println(width);
+        BufferedImage fin = new BufferedImage(raster.getWidth(), raster.getHeight(), BufferedImage.TYPE_BYTE_BINARY);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (buffer.get(y).charAt(x) == '0') {
@@ -48,6 +51,6 @@ public class ImageHandler {
                 }
             }
         }
-        ImageIO.write(fin, "bmp", new File("result.bmp"));
+        ImageIO.write(fin, "bmp", new File(url));
     }
 }
