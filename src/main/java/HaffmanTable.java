@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class HaffmanTable {
-    //Читаем кодовую таблицу
     public static String[][] readCodes(String path) throws IOException {
         String[][] codes = new String[92][3];
         FileInputStream fstream = new FileInputStream(path);

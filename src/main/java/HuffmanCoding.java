@@ -1,12 +1,13 @@
 import java.awt.image.WritableRaster;
 import java.io.*;
-import java.nio.file.Files;
 import java.util.ArrayList;
 
 
 public class HuffmanCoding {
+    private final String END = "000000000000";
     private final String CODES_URL = "codes.txt";
     private final int MAX_CODE_SIZE = 13;
+    private final String SEP_CODE = Integer.toBinaryString((int) '-');
 
     private ArrayList<String> buffer = new ArrayList<>();
     private ArrayList<String> haffmanBuffer = new ArrayList<>();
@@ -41,30 +42,16 @@ public class HuffmanCoding {
         int countsNum = 0;
         for (ArrayList<Integer> countList : counts) {
             for (Integer count : countList) {
-                while (count > 64) {
-                    for (int i = 90; i >= 0; i--) {
-                        if (Integer.parseInt(codes[i][0]) <= count) {
-                            count -= Integer.parseInt(codes[i][0]);
-                            System.out.print(codes[i][0] + " ");
-                            s.append(codes[i][white ? 1 : 2]);
-                            break;
-                        }
-                    }
+                int a = count/64;
+                int b = count%64;
+                if(a > 0) {
+                    s.append(codes[a+63][white ? 1 : 2]);
                 }
-                if (count != 0) {
-                    for (int i = 0; i < 92; i++) {
-                        if (Integer.parseInt(codes[i][0]) == count) {
-                            System.out.print(codes[i][0] + " ");
-                            s.append(codes[i][white ? 1 : 2]);
-                            break;
-                        }
-                    }
-                }
-                s.append(Integer.toBinaryString((int) '-'));
+                s.append(codes[b][white ? 1 : 2]);
+                s.append(SEP_CODE);
                 white = !white;
             }
 
-            //КОЛИЧЕСТВО ПОВТОРОВ КОДИРУЕМ
             int pos = buffer.get(countsNum).indexOf("p");
             if (pos != -1) {
                 String substring = buffer.get(countsNum).substring(pos);
@@ -76,7 +63,6 @@ public class HuffmanCoding {
             white = true;
             countsNum++;
         }
-
         writeFile(s);
     }
 
@@ -115,31 +101,25 @@ public class HuffmanCoding {
                 neof = false;
             }
         }
-        String ss = s.substring(0, s.length() - ost); //ТУТ КОСТЫЫЛь
+        String ss = s.substring(0, s.length() - ost);
         s = new StringBuilder(ss);
-        System.out.println("AAA " + s);
         return s;
     }
 
-
     public void decode(String url) throws IOException {
-
         StringBuilder s = readFile();
         int len = s.length();
         calculator.toDec(s, haffmanBytes);
         calculator.toBin(s, haffmanBytes, len);
-
-        //В коды
         StringBuilder builder = new StringBuilder();
         int summ = 0;
         boolean white = true;
         while (s.length() != 0) {
             int countRepeats = 0;
-            kek:
+            boolean check = true;
             for (int j = MAX_CODE_SIZE; j > 0; j--) {
                 String tmp = s.substring(0, s.length() >= j ? j : s.length());
-                if (tmp.equals("000000000000")) {
-                    System.out.print(" END ");
+                if (tmp.equals(END)) {
                     haffmanBuffer.add(builder.toString());
                     s.delete(0, s.length() >= j ? j : s.length());
                 }
@@ -156,17 +136,15 @@ public class HuffmanCoding {
                         builder.append("p");
                     }
 
-                    System.out.print(" EOL ");
                     haffmanBuffer.add(builder.toString());
                     builder = new StringBuilder();
                     s.delete(0, 12 * countRepeats);
                     white = true;
                     break;
                 } else {
-                    if (tmp.equals("101101")) {
-                        System.out.print(".");
+                    if (tmp.equals(SEP_CODE)) {
                         builder.append(summ + " ");
-                        s.delete(s.indexOf("101101"), s.indexOf("101101") + 6);
+                        s.delete(s.indexOf(SEP_CODE), s.indexOf(SEP_CODE) + 6);
                         summ = 0;
                         white = !white;
                         break;
@@ -174,11 +152,14 @@ public class HuffmanCoding {
                     for (int i = 0; i < 92; i++) {
                         if (codes[i][white ? 1 : 2].equals(tmp)) {
                             summ += Integer.parseInt(codes[i][0]);
-                            System.out.print(codes[i][0] + " ");
                             s.delete(0, s.length() >= j ? j : s.length());
-                            break kek;
+                            check = false;
+                            break;
                         }
                     }
+                }
+                if(!check) {
+                    break;
                 }
             }
         }
@@ -194,7 +175,6 @@ public class HuffmanCoding {
         haffmanBuffer.set(haffmanBuffer.size() - 1, haffmanBuffer.get(0));
         buffer.clear();
         StringBuilder stringBuilder;
-        //boolean white;
         for (String str : haffmanBuffer) {
             white = true;
             stringBuilder = new StringBuilder();

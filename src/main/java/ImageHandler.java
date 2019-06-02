@@ -14,7 +14,6 @@ public class ImageHandler {
     }
     public int getHeight() { return height;}
 
-    //Считывание картинки в матрицу бит
     public WritableRaster readFile(String url, ArrayList<String> buffer) throws IOException {
         BufferedImage image = ImageIO.read(new File(url));
         WritableRaster raster = image.getRaster();
@@ -37,7 +36,6 @@ public class ImageHandler {
         return raster;
     }
 
-    //Создаем картинку
     public void createImage(String url, WritableRaster raster, ArrayList<String> buffer) throws IOException {
         System.out.println(height);
         System.out.println(width);

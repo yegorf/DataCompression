@@ -12,21 +12,17 @@ public class ReadCoding {
                 cur += current.get(j) + 1;
                 nex += next.get(j) + 1;
                 if (cur == nex && current.size() == 1 && next.size() == 1) {
-                    System.out.println("Повторяем");
                     buffer.set(i + 1, buffer.get(i + 1).replace('n', 'y'));
                 } else {
                     if (Math.abs(cur - nex) >= 3) {
-                        System.out.println("Не повторяем");
                         buffer.set(i + 1, buffer.get(i + 1).replace('y', 'n'));
                         break;
                     } else {
-                        System.out.println("Повторяем");
                         buffer.set(i + 1, buffer.get(i + 1).replace('n', 'y'));
                     }
                 }
             }
         }
-
         deleteLines(counts, buffer);
     }
     public void readMethodWithDeletes(ArrayList<ArrayList<Integer>> counts, ArrayList<String> buffer) {
